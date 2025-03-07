@@ -1,61 +1,94 @@
-import "./PurchaseForm.css";
-import React, { useState } from "react";
-import axios from "axios"; // Import Axios for API calls
-import "./PurchaseForm.css"; // Import CSS for styling
+import { useState } from "react";
+import axios from "axios";
 
-function PurchaseForm() {
-    const [item, setItem] = useState(""); // Store item name
-    const [cost, setCost] = useState(""); // Store cost
-    const [response, setResponse] = useState(""); // Store AI response
-    const [loading, setLoading] = useState(false); // Show loading state
+const PurchaseForm = () => {
+  const [item, setItem] = useState("");
+  const [cost, setCost] = useState("");
+  const [roastLevel, setRoastLevel] = useState(2);
+  const [responseMessage, setResponseMessage] = useState("");
 
-    // Function to handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true); // Show loading while waiting for API response
+  const handleAnalyzePurchase = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/api/analyze", {
+        item,
+        cost: Number(cost),
+        roastLevel: Number(roastLevel),
+      });
 
-        try {
-            const res = await axios.post("http://localhost:5000/analyze", { item, cost });
-            setResponse(res.data.message); // Store AI's response
-        } catch (error) {
-            console.error("Error sending request:", error);
-            setResponse("⚠️ Error: Could not connect to the AI. Try again later.");
-        }
-        
-        setLoading(false); // Hide loading
-    };
+      setResponseMessage(response.data.message);
+    } catch (error) {
+      setResponseMessage("Error: Could not connect to the AI. Try again later.");
+      console.error("API Error:", error);
+    }
+  };
 
-    return (
-        <div className="purchase-container">
-            <h2>Enter Your Purchase</h2>
-            <form onSubmit={handleSubmit} className="purchase-form">
-                <input
-                    type="text"
-                    placeholder="Item name (e.g., Sneakers)"
-                    value={item}
-                    onChange={(e) => setItem(e.target.value)}
-                    required
-                />
-                <input
-                    type="number"
-                    placeholder="Cost ($)"
-                    value={cost}
-                    onChange={(e) => setCost(e.target.value)}
-                    required
-                />
-                <button type="submit" disabled={loading}>
-                    {loading ? "Analyzing..." : "Analyze Purchase"}
-                </button>
-            </form>
+  return (
+    <div style={styles.container}>
+      <h2>Too Broke for This?</h2>
 
-            {response && (
-                <div className="response-box">
-                    <h3>AI Response:</h3>
-                    <p>{response}</p>
-                </div>
-            )}
-        </div>
-    );
-}
+      <label>Enter Item:</label>
+      <input 
+        type="text" 
+        value={item} 
+        onChange={(e) => setItem(e.target.value)} 
+        style={styles.input} 
+      />
+
+      <label>Enter Cost ($):</label>
+      <input 
+        type="number" 
+        value={cost} 
+        onChange={(e) => setCost(e.target.value)} 
+        style={styles.input} 
+      />
+
+      <label>Choose Your Roast Level ({roastLevel})</label>
+      <input
+        type="range"
+        min="1"
+        max="4"
+        value={roastLevel}
+        onChange={(e) => setRoastLevel(e.target.value)}
+        style={styles.slider}
+      />
+
+      <button onClick={handleAnalyzePurchase} style={styles.button}>
+        Analyze Purchase
+      </button>
+
+      <h3>AI Response:</h3>
+      <p>{responseMessage}</p>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    maxWidth: "400px",
+    margin: "0 auto",
+    padding: "20px",
+    textAlign: "center",
+    background: "#fff",
+    borderRadius: "10px",
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+  },
+  input: {
+    width: "100%",
+    padding: "8px",
+    marginBottom: "10px",
+  },
+  slider: {
+    width: "100%",
+    marginBottom: "10px",
+  },
+  button: {
+    background: "#007bff",
+    color: "#fff",
+    padding: "10px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+};
 
 export default PurchaseForm;
