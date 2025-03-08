@@ -6,6 +6,7 @@ const PurchaseForm = () => {
   const [cost, setCost] = useState("");
   const [roastLevel, setRoastLevel] = useState(2);
   const [responseMessage, setResponseMessage] = useState("");
+  const [customerId, setCustomerId] = useState(""); 
 
   const handleAnalyzePurchase = async () => {
     try {
