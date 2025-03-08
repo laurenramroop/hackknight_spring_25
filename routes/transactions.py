@@ -14,13 +14,21 @@ transactions_bp = Blueprint("transactions", __name__)
 # Function to get customer's account balance
 def get_account_balance(customer_id):
     url = f"{BASE_URL}/customers/{customer_id}/accounts?key={API_KEY}"
+    
+    print(f"DEBUG: Requesting account for customer_id: {customer_id}")
+    print(f"DEBUG: API Request URL: {url}")
+    
     response = requests.get(url)
 
     if response.status_code == 200:
         accounts = response.json()
+        print(f"DEBUG: API Response: {accounts}")  # Debug response
         if len(accounts) > 0:
             return accounts[0]["balance"], accounts[0]["_id"]
+    
+    print(f"ERROR: Customer account not found for {customer_id}")  # Log failure
     return None, None
+
 
 # Function to fetch customer's transactions
 def get_transactions(account_id):
@@ -60,28 +68,14 @@ def get_ai_feedback(item, cost, balance, total_spent):
 def analyze():
     data = request.get_json()
 
+    # Debugging: Print the received request data
+    print("Received data:", data)
+
     if not data or "item" not in data or "cost" not in data or "customer_id" not in data:
-        return jsonify({"error": "Invalid request format"}), 400
+        return jsonify({"error": "Invalid request format", "received_data": data}), 400
 
     item = data["item"]
     cost = float(data["cost"])
     customer_id = data["customer_id"]
 
-    # Get account balance
-    balance, account_id = get_account_balance(customer_id)
-    if balance is None:
-        return jsonify({"error": "Customer account not found"}), 404
-
-    # Get transaction history
-    transactions = get_transactions(account_id)
-    total_spent = sum(tx["amount"] for tx in transactions) if transactions else 0
-
-    # Get AI feedback on spending
-    feedback = get_ai_feedback(item, cost, balance, total_spent)
-
-    return jsonify({
-        "message": feedback,
-        "balance": balance,
-        "total_spent": total_spent,
-        "transactions": transactions
-    })
+    return jsonify({"message": f"Received {item} costing ${cost} for customer {customer_id}"})

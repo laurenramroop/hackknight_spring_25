@@ -6,20 +6,29 @@ const PurchaseForm = () => {
   const [cost, setCost] = useState("");
   const [roastLevel, setRoastLevel] = useState(2);
   const [responseMessage, setResponseMessage] = useState("");
-  const [customerId, setCustomerId] = useState(""); 
 
   const handleAnalyzePurchase = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/api/analyze", {
-        item,
-        cost: Number(cost),
-        roastLevel: Number(roastLevel),
-      });
+    const customerId = localStorage.getItem("customer_id");
 
-      setResponseMessage(response.data.message);
+    if (!customerId) {
+        setResponseMessage("Error: No logged-in customer. Please log in.");
+        return;
+    }
+
+    try {
+        console.log("Sending request with:", { item, cost, roastLevel, customer_id: customerId });
+
+        const response = await axios.post("http://127.0.0.1:5000/api/analyze", {
+            item,
+            cost: Number(cost),
+            roastLevel: Number(roastLevel),
+            customer_id: customerId,
+        });
+
+        setResponseMessage(response.data.message);
     } catch (error) {
-      setResponseMessage("Error: Could not connect to the AI. Try again later.");
-      console.error("API Error:", error);
+        console.error("API Error:", error.response ? error.response.data : error.message);
+        setResponseMessage("Error: Could not connect to the AI. Try again later.");
     }
   };
 
